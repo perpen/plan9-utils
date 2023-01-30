@@ -1,0 +1,19 @@
+#!/bin/rc
+
+rfork en
+
+fn cmds {
+	PROMPT='[^ 	]*(%[ 	]+)+'
+	cat /dev/text |
+	grep -v '%[ 	]+(h|"|""|"n)([ 	]|$)' | # ignored commands
+	sed -n 's/^'$PROMPT'([^"])/	\2/p'
+}
+
+switch($#*) {
+case 0
+	cmds | tail -1
+case *
+	cmds | grep -n '^	'^$"* | tail -r |
+		sort -u +1 | sort -n |
+		sed 's/^[0-9]+: //'
+}

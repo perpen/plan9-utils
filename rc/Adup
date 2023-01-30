@@ -1,0 +1,24 @@
+#!/bin/rc
+# Creates window with same body and tag as current window.
+# Usage: Adup [NAME]
+# Random things happen depending on whether NAME is given,
+# or is an absolute path.
+
+rfork e
+
+newid=`{awk '{print $1}' /mnt/acme/new/ctl}
+if(~ $#* 0)
+	name=`{awk '{print $1}' /mnt/acme/$winid/tag} ^ '.copy'
+if not{
+	if(~ $1 /*)
+		name=$1
+	if not
+		name=`{pwd} ^ / ^ $1
+}
+echo 'name ' ^ $name > /mnt/acme/$newid/ctl
+cat /mnt/acme/$winid/body > /mnt/acme/$newid/body
+echo clean >/mnt/acme/$newid/ctl
+# copy tag
+echo cleartag >/mnt/acme/$newid/ctl
+cat /mnt/acme/$winid/tag |
+ssam 'x/^[^|]+\|/ d' >/mnt/acme/$newid/tag

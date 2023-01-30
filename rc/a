@@ -1,0 +1,10 @@
+#!/bin/rc
+# Acme: select and snarf whole text.
+
+if(! test -f /mnt/acme/index)
+	exit 'acme-only'
+
+w=/mnt/acme/$winid
+echo -n , >$w/addr
+echo 'dot=addr' >$w/ctl
+cat $w/body >/dev/snarf

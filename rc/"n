@@ -1,0 +1,5 @@
+#!/bin/rc
+rfork e
+rx='.'
+if(! ~ $#* 0) rx=$"*
+new " $rx

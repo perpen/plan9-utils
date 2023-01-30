@@ -1,0 +1,12 @@
+</$objtype/mkfile
+
+TARG=walk2
+OFILES=walk2.$O
+
+BIN=$home/bin/$objtype
+
+UPDATE=\
+	mkfile\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkone

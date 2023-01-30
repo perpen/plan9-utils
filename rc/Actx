@@ -1,0 +1,59 @@
+#!/bin/rc
+# Prints info about enclosing blocks (C, go, rc)
+# Assumes indentations are either all tabs or all spaces.
+
+rfork e
+
+w=/mnt/acme/$winid
+
+# identify address of current line
+<$w/addr {
+	echo 'addr=dot' >$w/ctl
+	preaddr=`{cat | awk '{print "#" $1 ",#" $2}'}
+	echo -n '0,+-' >$w/addr
+}
+
+echo '# Actx' - `{cat $w/tag | awk '{print $1}'}^:^$preaddr
+cat $w/xdata |
+tail -r |
+awk '
+	BEGIN { prefix = "" }
+	function setprefix(){
+		print $0
+		sub(/[^ 	].*$/, "")
+		prefix = $0
+	}
+	/^[ 	]*$/ {next}
+	/^{[ 	]*$/ {next} # C: the brace below function prototype
+	/^[^ 	]/ {
+		print $0
+		exit
+	}
+	/^/ {
+		if(prefix == "")
+			# initial line
+			setprefix()
+		else{
+			# check indentation is smaller than current prefix
+			n = index($0, prefix)
+			if(n == 0 || n != 1)
+				setprefix()
+		}
+	}' |
+tail -r
+
+exit ''
+
+# test text
+fn func{
+	for(aa){
+		while ( bb ) {
+			cc
+		}
+		dd()
+		if(ee){
+			ff
+			gg
+		}
+	}
+}

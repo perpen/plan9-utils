@@ -1,0 +1,11 @@
+#!/bin/rc
+# Similar to running "new CMD", but asynchronous.
+# See watch options.
+#
+# Is it better than running |new, and entering command in tag?
+# - Bit easier to kill, with Kill or Del; but I don't kill often.
+# - Deleting window kills the process.
+# - Don't get the blue box while running, but on completion the text will
+#   be selected.
+
+watch -sn $* &

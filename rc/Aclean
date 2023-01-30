@@ -1,0 +1,36 @@
+#!/bin/rc
+## modified from /n/sources/contrib/rsc/scripts/Clean
+## put "#k" in tag to keep
+
+rfork e
+
+if(~ $#* 0)
+	pattern=.
+if not
+	pattern=$1
+
+cd /mnt/acme
+for (i in [0-9]*){
+	if(test -d $i){
+		tag=`{cat $i/tag}
+		tagline = $"tag
+		file=$tag(1)
+
+		# must match our pattern if given, must be a clean window,
+		# not Errors or win.
+		if(! ~ $file */ *+Errors* *+watch* */-* */guide /LSP/*
+			&& ! ~ $tagline *Put* *'#k'*
+			&& echo $file | grep $pattern >/dev/null >[2]/dev/null){
+			echo delete >$i/ctl
+		}
+
+		# man pages
+		if(~ $pattern . && test -d $i
+		   && ! ~ $tagline *Put* *'#k'*){
+			if(echo $file | grep '\([0-9]\)$' >/dev/null >[2]/dev/null) {
+				echo delete >$i/ctl
+			}
+		}
+	}
+}
+status=''

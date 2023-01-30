@@ -1,0 +1,38 @@
+#!/bin/rc
+# To be run from win window. Saves commands to a central file, and
+# opens it in new window, allowing for editing. The newly added commands
+# are pre-selected.
+# Option -n to open the file w/o updating it.
+
+rfork e
+
+hist=$home/lib/rc-history
+
+view=n
+if(~ $"* -n) view=y
+
+if(~ $view n){
+	# append commands to history file
+	rx='^'
+	if(! ~ $#* 0) rx=$1
+
+	{echo ; echo '#' `{pwd} - `{date}} >> $hist
+	cat /mnt/acme/$winid/body |
+		grep -v '%[ 	]+(Ahist|"|""|"n|h|w)[ 	]*$' |
+		grep $rx |
+		ssam 'x/.*\n/ v/^[^ 	]*%/ d' |
+		ssam 'x/.*%[ 	]+/ c/% /' >> $hist
+}
+
+# open file and select the last header
+id=`{cat /mnt/acme/new/ctl}
+id=$id(1)
+{
+	echo 'name '^$hist
+	echo get
+	if(! ~ $view y){
+		echo -n '-/^#/+1,$' > /mnt/acme/$id/addr
+		echo -n 'dot=addr'
+		echo show
+	}
+} > /mnt/acme/$id/ctl

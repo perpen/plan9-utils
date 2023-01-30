@@ -1,0 +1,33 @@
+#!/bin/rc
+# Quickly start hacking on a script: creates it if absent (default ./x),
+# loads it in acme, starts watch on the directory containing the script.
+
+rfork e
+flag e +
+
+if(~ $#* 0) file=x
+if not {
+	cd `{basename -d $1}
+	file=`{basename $1}
+}
+
+if(! test -f $file){
+	echo '#!/bin/rc' >$file
+	chmod 0700 $file
+}
+
+name=`{pwd} ^ / ^ $file
+if(! grep -s $name ^ ' ' /mnt/acme/index){
+	id=`{cat /mnt/acme/new/ctl}
+	id=$id(1)
+	echo 'name ' ^ $name > /mnt/acme/$id/ctl
+	echo get >/mnt/acme/$id/ctl
+	>/mnt/acme/$id/addr {
+		echo -n '$'
+		echo 'dot=addr' >/mnt/acme/$id/ctl
+	}
+}
+
+cmd=`{pwd} ^ / ^ $file
+if(~ `{ps -a | grep 'watch ' ^ $cmd | grep -v grep} '')
+	watch ./$file >/dev/null >[2=1] &

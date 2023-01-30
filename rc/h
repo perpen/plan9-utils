@@ -1,0 +1,53 @@
+#!/bin/rc
+# Acme-only version of /bin/"", which instead of directly running the
+# command just adds it after the next prompt, ready to be modified and
+# run.
+# Preserves tab chars from previous commands.
+#
+# To delete the h command just typed, set var "hbashy" to "y", in this
+# script or in the shell. But then any selection in the tag is lost every time
+# this script is run.
+
+rfork e
+
+if(! test -f /mnt/acme/index)
+	exec " $*
+
+w=/mnt/acme/$winid
+
+cat $w/body |
+grep '%[ 	]+[^ 	]' | # prompt with a command
+grep -v '%[ 	]+(h|"|""|"n)([ 	]|$)' | # ignored commands
+sed 's/^.*%[ 	]+//' | # delete prompt
+switch($#*) {
+case 0
+	cat
+case *
+	grep -n '^' ^ $"* | tail -r |
+		sort -u +1 | sort -n |
+		sed 's/^[0-9]+: //'
+} |
+tail -1 |
+tr -d '
+' >/$w/body
+
+~ $hbashy y || exit ''
+
+fn acme_exe{
+	cmd=$*
+	tmp=/tmp/acme_exe.$pid
+	cat /dev/acme/tag | ssam '0/^[^|]*\|/d' >$tmp
+
+	beg=`{cat /dev/acme/tag | wc -r}
+	echo -n $cmd > /dev/acme/tag
+	end=`{cat /dev/acme/tag | wc -r}
+	echo Mx ^ $beg $end > /dev/acme/event
+
+	echo -n cleartag > /dev/acme/ctl
+	cat $tmp > /dev/acme/tag
+	rm $tmp
+}
+
+acme_exe 'Edit $ -/% h([ 	]+.*)?$/-+ d'
+echo -n '$' >$w/addr
+echo 'dot=addr' >$w/ctl

@@ -1,0 +1,187 @@
+#!/bin/rc
+# An rc variant of rsc's https://pkg.go.dev/9fans.net/go/acme/watch
+# Runs asynchronously.
+# Requires a command "enquote" that quote rc chars using quotestrdup(2)
+#
+# Usage: watch [-1 | -n] [-d DIR] [CMD]
+#   -1	listen for Put on current dir only, not subdirs
+#   -s	start command immediately
+#   -n	do not watch, only run the commands on Get or Put
+#   -d	cd to given dir, and listen for Put on files under it
+# Flags taking no param may be combined eg: -sr
+#
+# You can add any number of commands in the +watch window, prefixed
+# with '% '.
+# The +watch window is marked as dirty while the commands are running.
+# If a command fails, the subsequent commands are not run.
+# If given a single param containing a space (or | ; & \n \t), then it will be
+# copied verbatim to the window after a leading '% ':
+#   e.g. watch 'ps | grep glenda' or
+#   or watch 'pwd\n% date' (replace \n with literal newline)
+#
+# Bugs:
+# - If Kill is used, the commands not yet run are forgotten.
+# - Tabs in command lines are replaced with spaces, due to use of `{}
+# - If the output for a command does not terminate with a new line, the
+#   subsequent command will be lost on Get.
+
+rfork en
+
+fn log{
+	#echo $* >[1=2]
+}
+fn ctl{ echo $* >$w/ctl }
+fn tag{ echo -n $* >$w/tag }
+fn body{ echo -n $* >$w/body }
+fn data{ echo $* >$w/data }
+fn addr{ echo -n $* >$w/addr }
+
+name='+watch'
+dumpcmd=`{enquote watch $*}
+dir=`{pwd}
+
+start=n
+recursive=y
+nowatch=n
+while(~ $1 -*){
+	log flag: $1
+	if(~ $1 *s*) start=y
+	if(~ $1 *1*) {
+		recursive=n
+		name='+watch-1'
+	}
+	if(~ $1 *n*){
+		nowatch=y
+		name='+watch-n'
+	}
+	if(~ $1 -d){
+		dir=$2
+		shift
+	}
+	shift
+}
+name=$dir ^ / ^ $name
+
+cd $dir
+~ $dir */ || dir=$dir/
+rx=$dir ^ '[^/]+$'
+if(~ $nowatch y)
+	rx=nevermatch
+if not
+	if(~ $recursive y) rx=$dir
+log rx: $rx
+if(~ $#* 0) start=n
+
+win=`{cat /mnt/acme/new/ctl | awk '{print $1}'}
+w=/mnt/acme/$win
+cmdpidfile=/tmp/watch.cmdpid.$pid
+
+log 'win:' $win
+ctl 'name ' ^ $name
+ctl dumpdir $dir
+ctl dump $dumpcmd
+ctl cleartag
+tag ' Look Get Kill'
+{
+	if(echo -n $1 | ssam 'x/[ 	|&;\n]/c/‡/' | grep -s ‡){
+		echo -n '%' $1
+	}
+	if not{
+		echo -n '% '
+		if(! ~ $#* 0)
+			enquote -n $*
+	}
+} >$w/body
+ctl clean
+ctl menu
+
+fn killcmd{
+	log killcmd
+	cmdpid=`{cat $cmdpidfile}
+	echo kill >/proc/$cmdpid/notepg
+	# on command exit the main loop moves dot to beg, let's
+	# wait for that to happen, then move dot to end so we see
+	# the "killed" message.
+	sleep .2
+	addr '$'; ctl 'dot=addr'
+	data watch: killed
+	ctl clean
+}
+
+fn runcmd{
+	log running
+	prevstatus=''
+	addr ,
+	cat $w/body |
+	awk '/^%[ 	]+[^ 	]/ {sub(/^%[ 	]+/, ""); print}' |
+	while(line=`{read}){
+		echo '%' $line
+		status=$prevstatus
+		if(~ $"prevstatus ''){
+			rc -c $"line >[2=1]
+			prevstatus=$status
+			if(! ~ $"prevstatus '')
+				echo '# status:' $prevstatus
+		}
+		if not{
+			echo '# not run'
+		}
+	} >$w/data &
+	cmdpid=$apid
+	log cmdpid: $cmdpid
+	echo $cmdpid >$cmdpidfile
+	wait $cmdpid
+
+	log exited
+	ctl clean
+	ctl menu
+	addr 0; ctl 'dot=addr'; ctl show
+	rm $cmdpidfile
+}
+
+{
+	@{
+		rfork s
+		if(~ $start y) echo Get
+
+		# listen to Put on any window
+		cat /mnt/acme/log | grep ' put '$rx | awk '{print "put" }' &
+		# any pid in this process group
+		xpid=$apid
+
+		# listen to button 2/3
+		cat $w/event >[2=1] |
+		awk '
+			/^M[Xx][0-9]+ +[0-9]+ +[0-9]+ +0 *$/ {next}
+			/^M[Xx][0-9]+ +[0-9]+ +[0-9]+ [0-9]+ (Put|Get|Kill|Del)$/ {
+				print $5; next
+			}
+			/^M[XxLl]/ {print $1 " " $2}'
+
+		echo kill >/proc/$xpid/notepg
+	} >[2]/dev/null |
+	while(){
+		test -d $w || exit ''
+		msg=`{read}
+		log msg: $msg
+		switch($msg){
+		case put Get Put
+			if(! test -f $cmdpidfile){
+				runcmd &
+				# avoid race if getting quick succession of events:
+				sleep .2 
+			}
+		case Kill
+			if(test -f $cmdpidfile)
+				killcmd
+		case Del
+			if(test -f $cmdpidfile)
+				echo 'watch: command still running' >$w/errors
+			if not
+				ctl del >[2]/dev/null
+		case *
+			log forwarding $msg
+			echo $msg >$w/event
+		}
+	}
+} &

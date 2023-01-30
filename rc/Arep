@@ -1,0 +1,16 @@
+#!/bin/rc
+# Acme basic query-replace. Undo to skip last replacement.
+# It's just as easy to type 'Edit /old/c/new/' but then the change
+# may happen off-screen.
+
+rfork e
+
+old=$1
+new=$2
+w=/mnt/acme/$winid
+<$w/addr >$w/ctl {
+	echo 'addr=dot'
+	echo -n /$old >$w/addr >[2]/dev/null || exit ''
+	echo 'dot=addr'
+	echo -n $new >$w/wrsel
+}

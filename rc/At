@@ -1,0 +1,69 @@
+#!/bin/rc
+# Prints navigation history in window named '+At', with some context.
+# Exits on window Del.
+
+rfork e
+
+DEDUP=y # if y, log each address only once
+FNRX='^((fn|func( +\([^)]+\))?|type) +([^ {(]+)|})' # rc, go
+
+outw=/mnt/acme/ ^ `{cat /mnt/acme/new/ctl | awk '{print $1}'}
+echo 'name +At' >$outw/ctl
+echo scratch >$outw/ctl
+echo 'dump At' >$outw/ctl
+echo 'dumpdir ' ^ `{pwd} >$outw/ctl
+
+fn print{
+	echo $* >$outw/body
+}
+
+prevfile=''
+prevwin=''
+history=()
+
+cat /mnt/acme/log |
+while(event=`{read}){
+	id=$event(1); op=$event(2); file=$event(3)
+
+	# avoid error msg on window Del
+	if(~ $op del && ~ $file '+At') exit ''
+
+	if(~ $op focus && test -f $prevfile && ! ~ $prevwin ''){
+		w=/mnt/acme/$prevwin
+		if(test -f $w/tag){
+			<$w/addr >$w/ctl {
+				# Save dot
+				echo 'addr=dot'
+				addr=`{cat}
+				range='#' ^ $addr(1) ^ ',#' ^ $addr(2)
+				filerange=$prevfile ^ : ^ $range
+
+				if(~ $DEDUP n || ! ~ $filerange $history){
+					history=($filerange $history)
+
+					# Output the current line info
+					echo -n '-+' >$w/addr
+					echo 'dot=addr'
+					line=`{cat $w/rdsel}
+					print -n $filerange
+
+					found=''
+					if(echo -n '-/' ^ $FNRX ^ '/' >$w/addr >[2]/dev/null){
+						echo 'dot=addr' >$w/ctl
+						found=`{cat $w/rdsel}
+					}
+					if(! ~ $found '}'*) print '	' ^ $"found
+					if not print
+
+					print '	' ^ $"line
+
+					# Restore dot
+					echo -n $range >$w/addr || print oops2
+					echo 'dot=addr' >$w/ctl
+				}
+			}
+		}
+	}
+	prevwin=$id
+	prevfile=$file
+}

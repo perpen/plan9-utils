@@ -1,0 +1,5 @@
+9front's walk, with extras:
+-i - Ignore paths matching the regexp:
+% walk2 -i '.*/(cache|tmp|\.git|src/go|downloads)$' /usr/henri
+-I (shift i) - Ignore dirs containing a .git dir:
+% walk2 -i '.*/(cache|tmp|\.git|src/go|downloads)$' -I /usr/henri

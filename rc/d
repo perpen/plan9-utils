@@ -1,0 +1,18 @@
+#!/bin/rc
+# Acme: snarf and delete whole text.
+
+if(test -f /mnt/acme/index){
+	w=/mnt/acme/$winid
+	cat $w/body >/dev/snarf
+	if(~ `{awk '{print $1}' $w/tag} */-rc)
+		Aexe 'Edit ,d'
+	if not{
+		echo -n , >$w/addr
+		echo 'dot=addr' >$w/ctl
+		echo -n >$w/data
+	}
+}
+if not{
+	cat /mnt/wsys/text >/dev/snarf
+	>/mnt/wsys/text
+}

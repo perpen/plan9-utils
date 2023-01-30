@@ -1,0 +1,20 @@
+#!/bin/rc
+# Like /bin/"", but prints the command prefixed with % instead of tab,
+# for better visual clarity.
+
+if(test -f /mnt/acme/index){
+	h $* && echo >/dev/acme/body
+	exit ''
+}
+
+PROMPT='[^     ]*(%|;)+[       ]+'
+
+_x = `{" $* | tail -1}
+if(~ $#_x 0) {
+       echo no such command found >[1=2]
+       exit notfound
+}
+
+echo % $_x >[1=2]
+_x=`{ echo -n 'eval '''; echo $_x | sed 's/^'$PROMPT'//; s/''/''''/g; s/$/''/'}
+rc -c $"_x

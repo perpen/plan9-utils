@@ -1,0 +1,31 @@
+#!/bin/rc
+# Attempts to un/set the dirty state of acme windows sensibly.
+# Shows diff for windows not matching their files.
+
+rfork e
+
+cd /mnt/acme
+for (i in [0-9]*){
+	if(test -d $i){
+		tag=`{cat $i/tag}
+		file=$tag(1)
+
+		switch($file){
+		case /man/*
+			echo clean >$i/ctl
+			echo scratch >$i/ctl
+		case +* */-* */+* */ /LSP/*
+			# ignore
+		case *
+			# it's a file, compare
+			if(cmp -s $i/body $file){
+				echo clean >$i/ctl
+			}
+			if not{
+				echo dirty >$i/ctl
+				adiff $file $i/body
+			}
+		}
+	}
+}
+status=''

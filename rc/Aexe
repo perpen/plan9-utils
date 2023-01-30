@@ -1,0 +1,105 @@
+#!/bin/rc
+# WIP
+# Runs a command in an acme window, as if typed in the body and
+# executed with button 2.
+# To run on an arbitrary window define winid accordingly.
+#
+# Made too complicated by having to transform the selection
+# It would have been simpler to run the command from the tag, but there
+# is a race if Aexe is invoked from the tag as well.
+# Bugs:
+# - nomark doesn't work
+# - with Edit: Sometimes fails to restore the selection
+# - Buggy with acme's | and <
+
+rfork e
+
+# Not used, for ref only: runs the command from the tag. Much simpler,
+# but this cannot be triggered from the tag itself as we get a race.
+# Could be used if winid was for different windows.
+fn _exe_tag{
+	cmd=$*
+	w=/mnt/acme/$winid
+	# use a file rather than a var to preserve tabs
+	tmp=/tmp/_exe_tag.$pid
+	cat $w/tag | ssam '0/^[^|]*\|/d' >$tmp
+
+	beg=`{cat $w/tag | wc -c}
+	echo -n $cmd > $w/tag
+	end=`{cat $w/tag | wc -c}
+	echo Mx ^ $beg $end > $w/event
+
+	echo -n cleartag > $w/ctl
+	cat $tmp > $w/tag
+	rm $tmp
+}
+
+if(! ~ $#* 1)
+	exit 'usage: exe PARAM'
+cmd=$1
+
+w=/mnt/acme/$winid
+if(! test -d $w)
+	exit 'invalid window id:'^$winid
+
+if(echo $cmd | grep -s '^[ 	]*(Put|Putall)[ 	]*$')
+	exit 'invalid command: '^$cmd
+# using a temp file to avoid issues with `{} swallowing tabs
+cmdfile=/tmp/Aexe.$pid
+echo -n $cmd >$cmdfile
+cmdlen=`{wc -r <$cmdfile}
+
+echo nomark >$w/ctl
+
+# save selection
+<$w/addr {
+	echo 'addr=dot' >$w/ctl
+	preaddr=`{cat | awk '{print "#" $1 ",#" $2}'}
+}
+
+bodylen=`{cat $w/body | wc -r}
+
+# detect 'Edit ,'
+commarx='^[ 	]*Edit[ 	]+,'
+if(echo $cmd | grep -s $commarx){
+	sed 's/'^$commarx^'/Edit /' <$cmdfile >$cmdfile.2
+	mv $cmdfile.2 $cmdfile
+	addr='#0,#'^$bodylen
+}
+if not
+	addr=$preaddr
+
+# construct event
+beg=`{cat $w/body | wc -r}
+cat $cmdfile > $w/body
+end=`{echo $beg + $cmdlen | hoc}
+event=MX^$beg^' '^$end
+
+# run command on hacked selection
+echo -n $addr >$w/addr
+echo 'dot=addr' >$w/ctl
+echo $event >$w/event
+
+# save post-command selection
+<$w/addr {
+	echo 'addr=dot' >$w/ctl
+	#xxx why necessary to crop?
+	postaddr=`{awk '{print "#" $1 ",#" $2}'}
+if(~ y n)
+	postaddr=`{cat | awk -v 'bodylen='^$bodylen '
+		function limit(a){ return a>bodylen ? bodylen : a }
+		{print "#" limit($1) ",#" limit($2)}
+	'}
+}
+
+# delete command text
+>$w/addr {
+	echo -n '$-#'^$cmdlen^',$'
+	echo 'dot=addr' >$w/ctl
+	echo -n >$w/wrsel
+	# restore post-command selection
+	echo -n $postaddr
+	echo 'dot=addr' >$w/ctl
+	echo mark >$w/ctl
+}
+rm $cmdfile
