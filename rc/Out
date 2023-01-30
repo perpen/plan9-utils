@@ -1,0 +1,68 @@
+#!/bin/rc
+# Usage: see :/^fn
+# Runs the command and redirect its output to the window with given
+# name, creating it if needed.
+#   -e	only redirect stderr to the window
+#
+# Examples:
+#   Out `{pwd} ^ /+lookman lookman $*
+#   Out '+lookman' lookman $*
+#
+# Bugs:
+# - doesn't recreate the window if deleted and the command has more
+#   output.
+
+rfork e
+
+fn usage{
+	echo 'usage: Out [-e1] NAME CMD [PARAM ...]' >[1=2]
+	exit usage
+}
+
+onlyerr=n
+while(~ $1 -*){
+	switch($1){
+	case -e
+		onlyerr=y
+	case *
+		usage
+	}
+	shift
+}
+if(~ $#* 0 1) usage
+
+name=$1
+shift
+
+{
+	if(~ $onlyerr y)
+		$*
+	if not
+		$* >[1=2]
+	# always show status, notifies of completion
+	echo '#status:' $status >[1=2]
+} |[2] {
+	first=`{read}
+	if(! ~ $first ''){
+		namerx=`{echo $name | sed 's/([\+\/])/\\\1/g'}
+		id=`{awk '/[0-9] +' ^ $namerx ^ ' / {print $1}' /mnt/acme/index}
+		if(~ $id '')
+			id=`{cat /mnt/acme/new/ctl | awk '{print $1}'}
+		w=/mnt/acme/$id
+		echo name $name >$w/ctl
+		{
+			echo '#' $*
+			echo $first
+			cat
+			echo
+		} >$w/body
+		test -d $w && echo clean >$w/ctl
+		
+		>$w/addr {
+			echo -n '$-/^# /-#0'
+			echo 'dot=addr' >$w/ctl
+		}
+		echo show >$w/ctl
+	}
+}
+exit ''

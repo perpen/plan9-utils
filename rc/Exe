@@ -4,9 +4,9 @@
 # executed with button 2.
 # To run on an arbitrary window define winid accordingly.
 #
-# Made too complicated by having to transform the selection
+# Made too complicated by having to transform the selection.
 # It would have been simpler to run the command from the tag, but there
-# is a race if Aexe is invoked from the tag as well.
+# is a race if Exe is invoked from the tag as well.
 # Bugs:
 # - nomark doesn't work
 # - with Edit: Sometimes fails to restore the selection
@@ -45,7 +45,7 @@ if(! test -d $w)
 if(echo $cmd | grep -s '^[ 	]*(Put|Putall)[ 	]*$')
 	exit 'invalid command: '^$cmd
 # using a temp file to avoid issues with `{} swallowing tabs
-cmdfile=/tmp/Aexe.$pid
+cmdfile=/tmp/Exe.$pid
 echo -n $cmd >$cmdfile
 cmdlen=`{wc -r <$cmdfile}
 

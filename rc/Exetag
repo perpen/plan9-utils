@@ -1,6 +1,6 @@
 #!/bin/rc
-# Runs a command in an acme window, as if typed in the tag and
-# executed with button 2.
+# Runs a command in an acme window, as if typed in the tag and executed
+# with button 2.
 # To run on an arbitrary window define winid accordingly.
 # Do not call this script from the tag itself as we get a race.
 # Can be called from the command line in a win window.
@@ -10,7 +10,7 @@ rfork e
 cmd=$*
 w=/mnt/acme/$winid
 # use a file rather than a var to preserve tabs
-tmp=/tmp/Aexetag.$pid
+tmp=/tmp/Exetag.$pid
 cat $w/tag | ssam '0/^[^|]*\|/d' >$tmp
 
 beg=`{cat $w/tag | wc -c}

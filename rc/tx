@@ -1,14 +1,8 @@
 #!/bin/rc
-# Creates and makes executable.
-# To add bang, use eg -rc or -awk
+# Create empty rc script.
 
-flag e +
 rfork e
 
-if(~ $1 -*) {
-	opt=`{echo $1 | sed s/^-//}
-	echo '#!/bin/' ^ $opt > $2
-	shift
-}
-touch $1
+if(! test -f $1)
+	echo '#!/bin/rc' >$1
 chmod +x $1

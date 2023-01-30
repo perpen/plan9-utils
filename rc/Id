@@ -1,0 +1,7 @@
+#!/bin/rc
+# Acme: similar to ID, but can be run from the top tag, after clicking
+# on the desired window.
+
+echo Id: /mnt/acme/$winid \
+	/mnt/acme/$winid/body \
+	`{awk '{print $1}' /mnt/acme/$winid/tag}

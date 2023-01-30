@@ -4,9 +4,9 @@
 # run.
 # Preserves tab chars from previous commands.
 #
-# To delete the h command just typed, set var "hbashy" to "y", in this
-# script or in the shell. But then any selection in the tag is lost every time
-# this script is run.
+# To sort-of simulate bash's C-p by deleting the h command just typed,
+# set var "hbashy" below to "y". But then any selection in the tag is
+# lost every time this script is run.
 
 rfork e
 

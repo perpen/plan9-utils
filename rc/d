@@ -1,5 +1,6 @@
 #!/bin/rc
 # Acme: snarf and delete whole text.
+# Works in win window too.
 
 if(test -f /mnt/acme/index){
 	w=/mnt/acme/$winid

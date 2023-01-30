@@ -1,7 +1,7 @@
 #!/bin/rc
 # To be run from win window. Saves commands to a central file, and
-# opens it in new window, allowing for editing. The newly added commands
-# are pre-selected.
+# opens it in new window, allowing for editing. The newly added
+# commands are pre-selected.
 # Option -n to open the file w/o updating it.
 
 rfork e
@@ -18,7 +18,7 @@ if(~ $view n){
 
 	{echo ; echo '#' `{pwd} - `{date}} >> $hist
 	cat /mnt/acme/$winid/body |
-		grep -v '%[ 	]+(Ahist|"|""|"n|h|w)[ 	]*$' |
+		grep -v '%[ 	]+(Hist|"|""|"n|h|w)[ 	]*$' |
 		grep $rx |
 		ssam 'x/.*\n/ v/^[^ 	]*%/ d' |
 		ssam 'x/.*%[ 	]+/ c/% /' >> $hist

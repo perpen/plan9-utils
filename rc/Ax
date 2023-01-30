@@ -1,6 +1,8 @@
 #!/bin/rc
-# Quickly start hacking on a script: creates it if absent (default ./x),
-# loads it in acme, starts watch on the directory containing the script.
+# Quickly start hacking on a script: creates it if absent (default
+# ./x), loads it in acme, starts watch on the directory containing the
+# script.
+# Usage: Ax [PATH]
 
 rfork e
 flag e +

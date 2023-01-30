@@ -2,13 +2,14 @@
 # Without params, behaves like 'new'.
 # If given params:
 # - Runs asynchronously
+# - Redirects stderr to the window
+# - The command status is shown after completion if not empty
 # - Once the command has stopped:
 #	- The Kill command is removed from the tag
 #	- The window is marked as clean
 #      - Del can be used to delete the window
-# - The command status is shown after completion if not empty.
-# - If given a single param containing a space (or | ; & \n \t), then it will be
-#   run with "rc -c".
+# - If given a single param containing a space (or | ; & \n \t), then
+#   it will be run with "rc -c".
 
 rfork e
 
@@ -31,8 +32,7 @@ case *
 		name=`{pwd} ^ /- ^ `{basename $cmd(1)}
 }
 
-id=`{cat /mnt/acme/new/ctl}
-id=$id(1)
+id=`{cat /mnt/acme/new/ctl | awk '{print $1}'}
 w=/mnt/acme/$id
 tmp=/tmp/n.$pid
 pidfile=$tmp.pid

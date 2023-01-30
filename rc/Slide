@@ -1,5 +1,6 @@
 #!/bin/rc
-# Called from Aslide-, Aslide+ with param (-|+)
+# Similar to rsc's Slide.
+# Called from Slide-, Slide+ with param (-|+)
 
 rfork e
 

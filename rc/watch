@@ -1,7 +1,7 @@
 #!/bin/rc
 # An rc variant of rsc's https://pkg.go.dev/9fans.net/go/acme/watch
 # Runs asynchronously.
-# Requires a command "enquote" that quote rc chars using quotestrdup(2)
+# Requires the command "enquote" provided in this git repo.
 #
 # Usage: watch [-1 | -n] [-d DIR] [CMD]
 #   -1	listen for Put on current dir only, not subdirs
@@ -14,8 +14,8 @@
 # with '% '.
 # The +watch window is marked as dirty while the commands are running.
 # If a command fails, the subsequent commands are not run.
-# If given a single param containing a space (or | ; & \n \t), then it will be
-# copied verbatim to the window after a leading '% ':
+# If given a single param containing a space (or | ; & \n \t), then it
+# will be copied verbatim to the window after a leading '% ':
 #   e.g. watch 'ps | grep glenda' or
 #   or watch 'pwd\n% date' (replace \n with literal newline)
 #

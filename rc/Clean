@@ -1,6 +1,7 @@
 #!/bin/rc
-## modified from /n/sources/contrib/rsc/scripts/Clean
-## put "#k" in tag to keep
+# Delete boring windows (saved files, man pages).
+# Modified from /n/sources/contrib/rsc/scripts/Clean
+# Put "#k" in the tag to keep a window.
 
 rfork e
 

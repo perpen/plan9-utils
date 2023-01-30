@@ -13,7 +13,7 @@ w=/mnt/acme/$winid
 	echo -n '0,+-' >$w/addr
 }
 
-echo '# Actx' - `{cat $w/tag | awk '{print $1}'}^:^$preaddr
+echo '# Ctx' - `{cat $w/tag | awk '{print $1}'}^:^$preaddr
 cat $w/xdata |
 tail -r |
 awk '
@@ -34,7 +34,7 @@ awk '
 			# initial line
 			setprefix()
 		else{
-			# check indentation is smaller than current prefix
+			# indentation is smaller than current prefix?
 			n = index($0, prefix)
 			if(n == 0 || n != 1)
 				setprefix()

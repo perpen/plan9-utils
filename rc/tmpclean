@@ -1,4 +1,6 @@
 #!/bin/rc
+# Delete files in $home/tmp that are older than the boot time.
+
 rfork en
 
 cd $home/tmp || exit

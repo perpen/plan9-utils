@@ -1,0 +1,27 @@
+#!/bin/rc
+# Usage: select whole lines in acme window then run |c
+#
+# Comment or uncomment the input (whole lines only), depending on
+# whether the first line is commented or not.
+# Tries to guess the type of comment to use.
+# Comment tokens are tested for or added at the very beginning of the
+# line only.
+
+rfork e
+
+name=`{cat /mnt/acme/$winid/tag | awk '{print $1}'}
+switch($name){
+case *.go *.[ch]
+	comment='//'
+case *
+	comment='#'
+}
+
+tmp=/tmp/c.$pid
+cat >$tmp
+if(sed 1q $tmp | grep -s '^' ^ $comment)
+	cat $tmp | sed 's☺^' ^ $comment ^ '(.*)☺\1☺'
+if not
+	cat $tmp | sed 's☺^☺' ^ $comment ^ '☺'
+
+rm $tmp

@@ -5,7 +5,7 @@ rfork en
 fn cmds {
 	PROMPT='[^ 	]*(%[ 	]+)+'
 	cat /dev/text |
-	grep -v '%[ 	]+(h|"|""|"n)([ 	]|$)' | # ignored commands
+	grep -v '%[ 	]+("|""|"n|h)([ 	]|$)' | # ignored commands
 	sed -n 's/^'$PROMPT'([^"])/	\2/p'
 }
 

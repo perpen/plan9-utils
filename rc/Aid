@@ -1,4 +1,0 @@
-#!/bin/rc
-echo Aid: /mnt/acme/$winid \
-	/mnt/acme/$winid/body \
-	`{awk '{print $1}' /mnt/acme/$winid/tag}

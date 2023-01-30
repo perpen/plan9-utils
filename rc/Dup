@@ -1,8 +1,8 @@
 #!/bin/rc
 # Creates window with same body and tag as current window.
-# Usage: Adup [NAME]
-# Random things happen depending on whether NAME is given,
-# or is an absolute path.
+# Usage: Dup [NAME]
+# Random things happen depending on whether NAME is given, or is an
+# absolute path.
 
 rfork e
 

@@ -7,10 +7,10 @@
 #	-x: regex mode, only makes sense when giving explicit param
 # Flags may be combined, as in: -rws
 #
-# This is not an acme builtin: if invoked with an explicit
-# param (as opposed to using the selection or 2-1 chording) it is
-# necessary to quote characters that may be interpreted by rc, eg
-# instead of `Looki ^` do `Looki '^'`.
+# This is not an acme builtin: if invoked with an explicit param (as
+# opposed to using the selection or 2-1 chording) it is necessary to
+# quote characters that may be interpreted by rc, eg instead of
+# "Looki ^", run "Looki '^'".
 #
 # Bugs:
 # - Spaces at beginning/end are ignored; cant' have more than 1
