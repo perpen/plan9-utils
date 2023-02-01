@@ -1,7 +1,8 @@
 #!/bin/rc
 # Usage: see :/^fn
 # Runs the command and redirect its output to the window with given
-# name, creating it if needed.
+# name, creating it if needed. On command completion dot is moved to
+# top of output.
 #   -e	only redirect stderr to the window
 #
 # Examples:
@@ -11,11 +12,12 @@
 # Bugs:
 # - doesn't recreate the window if deleted and the command has more
 #   output.
+# - if run in parallel, commands outputs are mixed up.
 
 rfork e
 
 fn usage{
-	echo 'usage: Out [-e1] NAME CMD [PARAM ...]' >[1=2]
+	echo 'usage: Out [-e] NAME CMD [PARAM ...]' >[1=2]
 	exit usage
 }
 
@@ -37,10 +39,11 @@ shift
 {
 	if(~ $onlyerr y)
 		$*
-	if not
+	if not{
 		$* >[1=2]
-	# always show status, notifies of completion
-	echo '#status:' $status >[1=2]
+		# always show status, notifies of completion
+		echo '#status:' $status >[1=2]
+	}
 } |[2] {
 	first=`{read}
 	if(! ~ $first ''){
@@ -51,7 +54,11 @@ shift
 		w=/mnt/acme/$id
 		echo name $name >$w/ctl
 		{
-			echo '#' $*
+			echo -n '#' $*
+			if(~ $onlyerr y)
+				echo ' (stderr)'
+			if not
+				echo
 			echo $first
 			cat
 			echo

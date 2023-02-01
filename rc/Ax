@@ -32,4 +32,4 @@ if(! grep -s $name ^ ' ' /mnt/acme/index){
 
 cmd=`{pwd} ^ / ^ $file
 if(~ `{ps -a | grep 'watch ' ^ $cmd | grep -v grep} '')
-	watch ./$file >/dev/null >[2=1] &
+	watch -1 ./$file >/dev/null >[2=1] &

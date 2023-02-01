@@ -1,7 +1,7 @@
 #!/bin/rc
 # Creates window with same body and tag as current window.
 # Usage: Dup [NAME]
-# Random things happen depending on whether NAME is given, or is an
+# Various things happen depending on whether NAME is given, is an
 # absolute path.
 
 rfork e
