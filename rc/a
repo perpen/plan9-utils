@@ -1,6 +1,8 @@
 #!/bin/rc
 # Acme: select and snarf whole text.
 
+rfork e
+
 if(! test -f /mnt/acme/index)
 	exit 'acme-only'
 

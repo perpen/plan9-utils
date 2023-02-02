@@ -2,6 +2,8 @@
 # Acme: snarf and delete whole text.
 # Works in win window too.
 
+rfork e
+
 if(test -f /mnt/acme/index){
 	w=/mnt/acme/$winid
 	cat $w/body >/dev/snarf

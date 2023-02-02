@@ -4,10 +4,11 @@
 # name, creating it if needed. On command completion dot is moved to
 # top of output.
 #   -e	only redirect stderr to the window
+#   -t		add given string to the tag
 #
 # Examples:
-#   Out `{pwd} ^ /+lookman lookman $*
-#   Out '+lookman' lookman $*
+#   Out `{pwd} ^ /+Lookman lookman $*
+#   Out -t 'Edit ,d' '+Lookman' lookman $*
 #
 # Bugs:
 # - doesn't recreate the window if deleted and the command has more
@@ -17,15 +18,19 @@
 rfork e
 
 fn usage{
-	echo 'usage: Out [-e] NAME CMD [PARAM ...]' >[1=2]
+	echo 'usage: Out [-e] [-t TAG] NAME CMD [PARAM ...]' >[1=2]
 	exit usage
 }
 
+tagextra=''
 onlyerr=n
 while(~ $1 -*){
 	switch($1){
 	case -e
 		onlyerr=y
+	case -t
+		tagextra=$2
+		shift
 	case *
 		usage
 	}
@@ -41,20 +46,24 @@ shift
 		$*
 	if not{
 		$* >[1=2]
-		# always show status, notifies of completion
-		echo '#status:' $status >[1=2]
+		# show status + notify of completion
+		#echo '#status:' $status >[1=2]
 	}
 } |[2] {
 	first=`{read}
 	if(! ~ $first ''){
 		namerx=`{echo $name | sed 's/([\+\/])/\\\1/g'}
 		id=`{awk '/[0-9] +' ^ $namerx ^ ' / {print $1}' /mnt/acme/index}
-		if(~ $id '')
+		if(~ $id ''){
 			id=`{cat /mnt/acme/new/ctl | awk '{print $1}'}
+			w=/mnt/acme/$id
+			echo -n $"tagextra >$w/tag
+			echo nomenu >$w/ctl
+		}
 		w=/mnt/acme/$id
 		echo name $name >$w/ctl
 		{
-			echo -n '#' $*
+			echo -n '#' $* ''
 			if(~ $onlyerr y)
 				echo ' (stderr)'
 			if not
