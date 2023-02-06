@@ -2,6 +2,8 @@
 # Like /bin/"", but prints the command prefixed with % instead of tab,
 # for better visual clarity.
 
+rfork e
+
 if(test -f /mnt/acme/index){
 	h $* && echo >/dev/acme/body
 	exit ''

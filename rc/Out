@@ -18,21 +18,19 @@
 rfork e
 
 fn usage{
-	echo 'usage: Out [-e] [-t TAG] NAME CMD [PARAM ...]' >[1=2]
+	echo 'usage: out [-e] [-t tag] name cmd [param ...]' >[1=2]
 	exit usage
 }
 
 tagextra=''
 onlyerr=n
-while(~ $1 -*){
+while(~ $1 -e -t){
 	switch($1){
 	case -e
 		onlyerr=y
 	case -t
 		tagextra=$2
 		shift
-	case *
-		usage
 	}
 	shift
 }
@@ -58,10 +56,11 @@ shift
 			id=`{cat /mnt/acme/new/ctl | awk '{print $1}'}
 			w=/mnt/acme/$id
 			echo -n $"tagextra >$w/tag
-			echo nomenu >$w/ctl
 		}
 		w=/mnt/acme/$id
 		echo name $name >$w/ctl
+		echo nomenu >$w/ctl
+		echo scratch >$w/ctl
 		{
 			echo -n '#' $* ''
 			if(~ $onlyerr y)

@@ -9,15 +9,8 @@ for (i in [0-9]*){
 	if(test -d $i){
 		tag=`{cat $i/tag}
 		file=$tag(1)
-
-		switch($file){
-		case /man/*
-			echo clean >$i/ctl
-			echo scratch >$i/ctl
-		case +* */-* */+* */ /LSP/*
-			# ignore
-		case *
-			# it's a file, compare
+		if(test -f $file){
+			# there's a file, compare
 			if(cmp -s $i/body $file){
 				echo clean >$i/ctl
 			}

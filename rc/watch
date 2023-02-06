@@ -2,28 +2,27 @@
 # An rc variant of rsc's https://pkg.go.dev/9fans.net/go/acme/watch
 # Runs asynchronously.
 # Requires the command "enquote" provided in this git repo.
-#
-# Usage: watch [-1 | -n] [-d DIR] [CMD]
-#   -1	listen for Put on current dir only, not subdirs
-#   -s	start command immediately
-#   -n	do not watch, only run the commands on Get or Put
-#   -d	cd to given dir, and listen for Put on files under it
-# Flags taking no param may be combined eg: -sr
-#
-# You can add any number of commands in the +watch window, prefixed
-# with '% '.
-# The +watch window is marked as dirty while the commands are running.
-# If a command fails, the subsequent commands are not run.
-# If given a single param containing a space (or | ; & \n \t), then it
-# will be copied verbatim to the window after a leading '% ':
-#   e.g. watch 'ps | grep glenda' or
-#   or watch 'pwd\n% date' (replace \n with literal newline)
-#
 # Bugs:
 # - If Kill is used, the commands not yet run are forgotten.
-# - Tabs in command lines are replaced with spaces, due to use of `{}
 # - If the output for a command does not terminate with a new line, the
-#   subsequent command will be lost on Get.
+#   subsequent command will be forgotten on Get.
+# - Tabs in command lines are replaced with spaces, due to use of `{}
+# - Does not support chording on commands to pass a param
+
+usage='usage: watch [-s1n] [-d dir] cmd [param ...]
+	-1	listen for Put on current dir only, not subdirs
+	-s	start command immediately
+	-n	do not watch, only run the commands on Get or Put
+	-d	cd to given dir, and listen for Put on files under it
+	Flags taking no param may be combined eg: -sr
+You can add any number of commands in the +watch window, prefixed with
+"% ".
+The +watch window is marked as dirty while the commands are running.
+If a command fails, the subsequent commands are not run.
+If given a single param containing a space (or | ; & \n \t), then it
+will be copied verbatim to the window after a leading "% ":
+	e.g. watch "ps | grep glenda" or
+	or watch "pwd\n% date" (replace \n with literal newline)'
 
 rfork en
 
@@ -43,7 +42,8 @@ dir=`{pwd}
 start=n
 recursive=y
 nowatch=n
-while(~ $1 -*){
+# adding -n to prevent our -n from being swallowed by echo
+while(echo -n $1 | grep -s '^-[s1nd]+$'){
 	log flag: $1
 	if(~ $1 *s*) start=y
 	if(~ $1 *1*) {
@@ -54,11 +54,16 @@ while(~ $1 -*){
 		nowatch=y
 		name='+watch-n'
 	}
+	# must be last, b/c param
 	if(~ $1 -d){
 		dir=$2
 		shift
 	}
 	shift
+}
+if(~ $1 -*){
+	echo $usage >[1=2]
+	exit usage
 }
 name=$dir ^ / ^ $name
 
@@ -72,11 +77,11 @@ if not
 log rx: $rx
 if(~ $#* 0) start=n
 
-win=`{cat /mnt/acme/new/ctl | awk '{print $1}'}
-w=/mnt/acme/$win
+winid=`{cat /mnt/acme/new/ctl | awk '{print $1}'}
+w=/mnt/acme/$winid
 cmdpidfile=/tmp/watch.cmdpid.$pid
 
-log 'win:' $win
+log 'winid:' $winid
 ctl 'name ' ^ $name
 ctl dumpdir $dir
 ctl dump $dumpcmd
@@ -94,19 +99,6 @@ tag ' Look Get Kill'
 } >$w/body
 ctl clean
 ctl menu
-
-fn killcmd{
-	log killcmd
-	cmdpid=`{cat $cmdpidfile}
-	echo kill >/proc/$cmdpid/notepg
-	# on command exit the main loop moves dot to beg, let's
-	# wait for that to happen, then move dot to end so we see
-	# the "killed" message.
-	sleep .2
-	addr '$'; ctl 'dot=addr'
-	data watch: killed
-	ctl clean
-}
 
 fn runcmd{
 	log running
@@ -131,7 +123,6 @@ fn runcmd{
 	log cmdpid: $cmdpid
 	echo $cmdpid >$cmdpidfile
 	wait $cmdpid
-
 	log exited
 	ctl clean
 	ctl menu
@@ -139,27 +130,39 @@ fn runcmd{
 	rm $cmdpidfile
 }
 
+fn killcmd{
+	log killcmd
+	cmdpid=`{cat $cmdpidfile}
+	echo kill >/proc/$cmdpid/notepg
+	# on command exit the main loop moves dot to beg, let's
+	# wait for that to happen, then move dot to end so we see
+	# the "killed" message.
+	sleep .2
+	addr '$'; ctl 'dot=addr'
+	data watch: killed
+	ctl clean
+}
+
 {
-	@{
-		rfork s
+	{
 		if(~ $start y) echo Get
 
-		# listen to Put on any window
-		cat /mnt/acme/log | grep ' put '$rx | awk '{print "put" }' &
-		# any pid in this process group
-		xpid=$apid
-
-		# listen to button 2/3
-		cat $w/event >[2=1] |
+		# listen for buttons 2 and 3
+		cat $w/event >[2]/dev/null |
 		awk '
-			/^M[Xx][0-9]+ +[0-9]+ +[0-9]+ +0 *$/ {next}
-			/^M[Xx][0-9]+ +[0-9]+ +[0-9]+ [0-9]+ (Put|Get|Kill|Del)$/ {
+			/^M[Xx][0-9]+ [0-9]+ [0-9]+ 0 *$/ {next}
+			/^M[Xx][0-9]+ [0-9]+ [0-9]+ [0-9]+ (Put|Get|Kill|Del)$/ {
 				print $5; next
 			}
-			/^M[XxLl]/ {print $1 " " $2}'
+			/^M[XxLl]/ {print $1 " " $2}' &
 
-		echo kill >/proc/$xpid/notepg
-	} >[2]/dev/null |
+		# listen for put on windows matching the regex, and del on our own
+		cat /mnt/acme/log |
+		awk '
+			/^[0-9]+ put ' ^ `{echo $rx | sed 's,/,\\/,g'} ^ '/ {print "put"}
+			/^' ^ $winid ^ ' del/ {exit}
+		'
+	} |
 	while(){
 		test -d $w || exit ''
 		msg=`{read}
@@ -169,7 +172,7 @@ fn runcmd{
 			if(! test -f $cmdpidfile){
 				runcmd &
 				# avoid race if getting quick succession of events:
-				sleep .2 
+				sleep .1
 			}
 		case Kill
 			if(test -f $cmdpidfile)

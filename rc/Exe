@@ -35,7 +35,7 @@ fn _exe_tag{
 }
 
 if(! ~ $#* 1)
-	exit 'usage: exe PARAM'
+	exit 'usage: Exe command'
 cmd=$1
 
 w=/mnt/acme/$winid

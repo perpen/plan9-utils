@@ -1,15 +1,17 @@
 #!/bin/rc
 # Without params, behaves like 'new'.
-# If given params:
+# If given params, differences with 'new':
 # - Runs asynchronously
 # - Redirects stderr to the window
-# - The command status is shown after completion if not empty
-# - Once the command has stopped:
-#	- The Kill command is removed from the tag
-#	- The window is marked as clean
-#      - Del can be used to delete the window
+# - The command status is shown in the window after completion
+# - While commands are running:
+#	- A Kill command is placed in the tag
+#	- The window is marked as dirty
+#      - Del does not delete
 # - If given a single param containing a space (or | ; & \n \t), then
 #   it will be run with "rc -c".
+# Bugs:
+# - Does not support chording on commands to pass a param
 
 rfork e
 
@@ -55,7 +57,6 @@ fn removeKill{
 
 {
 	echo dirty >$w/ctl
-	echo menu >$w/ctl
 	$cmd >[2=1]
 	xstatus=$status
 	if(! ~ $"xstatus '')
@@ -68,10 +69,10 @@ fn removeKill{
 echo $apid >$pidfile
 
 {
-	cat  $w/event >[2=1] |
+	cat  $w/event >[2]/dev/null |
 	awk '
-		/^M[Xx][0-9]+ +[0-9]+ +[0-9]+ +0 *$/ {next}
-		/^M[Xx][0-9]+ +[0-9]+ +[0-9]+ [0-9]+ (Kill|Del)$/ {print $5; next}
+		/^M[Xx][0-9]+ [0-9]+ [0-9]+ 0 *$/ {next}
+		/^M[Xx][0-9]+ [0-9]+ [0-9]+ [0-9]+ (Kill|Del)$/ {print $5; next}
 		/^M[XxLl]/ {print $1 " " $2}' |
 	while(){
 		msg=`{read}

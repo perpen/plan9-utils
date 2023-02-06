@@ -1,5 +1,5 @@
 #!/bin/rc
-# Acme: select and snarf whole text.
+# Acme: select whole text.
 
 rfork e
 
@@ -9,4 +9,4 @@ if(! test -f /mnt/acme/index)
 w=/mnt/acme/$winid
 echo -n , >$w/addr
 echo 'dot=addr' >$w/ctl
-cat $w/body >/dev/snarf
+#cat $w/body >/dev/snarf

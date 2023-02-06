@@ -1,6 +1,10 @@
 #!/bin/rc
 # Prints info about enclosing blocks (C, go, rc)
 # Assumes indentations are either all tabs or all spaces.
+# Bugs:
+# - Would it be useful to provide the address of the block lines? But
+#   I can always select the block line in the Ctx output and pass it to
+#   Look with 2-1.
 
 rfork e
 

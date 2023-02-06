@@ -5,10 +5,16 @@
 
 rfork e
 
+if(~ $#acmedir 0){
+	echo 'Clean: acmedir not defined' >[1=2]
+	exit usage
+}
+
 if(~ $#* 0)
 	pattern=.
 if not
 	pattern=$1
+
 
 cd /mnt/acme
 for (i in [0-9]*){
@@ -16,20 +22,23 @@ for (i in [0-9]*){
 		tag=`{cat $i/tag}
 		tagline = $"tag
 		file=$tag(1)
-
-		# must match our pattern if given, must be a clean window,
-		# not Errors or win.
-		if(! ~ $file */ *+Errors* *+watch* */-* */guide /LSP/*
-			&& ! ~ $tagline *Put* *'#k'*
-			&& echo $file | grep $pattern >/dev/null >[2]/dev/null){
-			echo delete >$i/ctl
-		}
-
-		# man pages
-		if(~ $pattern . && test -d $i
-		   && ! ~ $tagline *Put* *'#k'*){
-			if(echo $file | grep '\([0-9]\)$' >/dev/null >[2]/dev/null) {
+		if(echo $file | grep -s $pattern >[2]/dev/null){
+			switch($tagline){
+			case *'#k'*  guide' '*   */guide' '*
+			case /man/*
 				echo delete >$i/ctl
+			case *
+				if(! ~ $file /*)
+					file=$acmedir ^ / ^ $file
+				if(test -f $file){
+					# there's a file, compare
+					if(cmp -s $i/body $file){
+						echo delete >$i/ctl
+					}
+					if not{
+						echo dirty >$i/ctl
+					}
+				}
 			}
 		}
 	}

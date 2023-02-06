@@ -5,7 +5,7 @@
 # whether the first line is commented or not.
 # Tries to guess the type of comment to use.
 # Comment tokens are tested for or added at the very beginning of the
-# line only.
+# line.
 
 rfork e
 

@@ -1,6 +1,6 @@
 #!/bin/rc
-# Acme: snarf and delete whole text.
-# Works in win window too.
+# Acme/rio: snarf and delete window text.
+# Works in acme's win window too.
 
 rfork e
 
@@ -8,7 +8,7 @@ if(test -f /mnt/acme/index){
 	w=/mnt/acme/$winid
 	cat $w/body >/dev/snarf
 	if(~ `{awk '{print $1}' $w/tag} */-rc)
-		Aexe 'Edit ,d'
+		Exe 'Edit ,d'
 	if not{
 		echo -n , >$w/addr
 		echo 'dot=addr' >$w/ctl

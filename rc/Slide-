@@ -1,2 +1,29 @@
 #!/bin/rc
-Slide -
+# Similar to rsc's Slide.
+# Called from Slide-, Slide+ with param (-|+)
+
+rfork e
+
+if(~ $#* 0) sign=-
+if not sign=+
+
+w=/mnt/acme/$winid
+safe=y # y to check if clean before changing slide
+
+if(~ $safe y && ! cmp $% $w/body >/dev/null){
+	echo dirty >$w/ctl
+	exit
+}
+if not
+	echo clean >$w/ctl
+
+current=`{cat $w/tag | awk '{print $1; exit}'}
+next=`{ls `{pwd} | ssam -n 'x#' ^ $current ^ '\n#' ^ $sign ^ '1'}
+if(! ~ $#next 0){
+	echo name $next >$w/ctl
+	echo get >$w/ctl
+	echo -n 0 >$w/addr
+	echo 'dot=addr' >$w/ctl
+	echo show >$w/ctl
+}
+exit ''

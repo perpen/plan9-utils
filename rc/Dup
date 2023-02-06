@@ -8,7 +8,7 @@ rfork e
 
 newid=`{awk '{print $1}' /mnt/acme/new/ctl}
 if(~ $#* 0)
-	name=`{awk '{print $1}' /mnt/acme/$winid/tag} ^ '.copy'
+	name=`{awk '{print $1}' /mnt/acme/$winid/tag} ^ '.dup'
 if not{
 	if(~ $1 /*)
 		name=$1
