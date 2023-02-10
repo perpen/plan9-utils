@@ -1,0 +1,43 @@
+#!/bin/rc
+# Invokes g but whatever the cwd, directs output to single window '+G',
+# adjusting paths as needed.
+
+rfork e
+
+if(~ $#acmedir 0){
+	echo 'G: acmedir not defined' >[1=2]
+	exit usage
+}
+
+if(! ~ $1 -x)
+	exec Out -t 'd G' +G G -x $*
+
+shift
+name=`{cat /mnt/acme/$winid/tag | awk '{print $1}'}
+namedir=`{basename -d $name}
+# if tag dir does not exist, check it's a special window eg man page or
+# +Errors etc
+if(! test -d $namedir
+	&& ! echo $name | grep -s '^(/man/.*|(-|\+)[^/]+)$'){
+	echo 'not dir:' $namedir >[1=2]
+	exit notdir
+}
+dir=`{pwd}
+# we parse the params so we can make the files/dirs absolute
+args=()
+while(~ $1 -*){
+	args=($args $1)
+	shift
+}
+args=($args $1)
+shift
+if(~ $#* 0)
+	args=($args $dir)
+if not
+	for(arg in $*){
+		if(! ~ $arg /*)
+			arg=$dir ^ / ^ $arg
+		args=($args $arg)
+		shift
+	}
+eval g $args | sed 's#^' ^ $acmedir ^ '/##'

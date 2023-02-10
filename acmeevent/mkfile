@@ -1,0 +1,12 @@
+</$objtype/mkfile
+
+TARG=acmeevent
+OFILES=acmeevent.$O
+BIN=$home/bin/$objtype
+CFLAGS=-FTVw
+UPDATE=\
+	mkfile\
+	${OFILES:%.$O=%.c}\
+
+</sys/src/cmd/mkone
+LDFLAGS+=-lthread

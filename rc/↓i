@@ -1,0 +1,92 @@
+#!/bin/rc
+# A variant of the Look command of acme. Case-insensitive by default.
+# Usage: ↓i [-rswx] [SEARCH]
+#	-r: search backwards
+#	-s: case sensitive
+#	-w: whole words
+#	-x: regex mode, only makes sense when giving explicit param
+#
+# This is not an acme builtin: if invoked with an explicit param (as
+# opposed to using the selection or 2-1 chording) it is necessary to
+# quote characters that may be interpreted by rc, eg instead of
+# "↓i ^", run "↓i '^'".
+#
+# Bugs:
+# - Spaces at beginning/end are ignored; cant' have more than 1
+#   consecutive spaces.
+#
+# test: blah Blah blahx Blahx
+# test: x $y^$* ab("cd\n") \n t..t:
+# test: x $y^$* ab("cd\n") \n t..t:
+# Test: X $Y^$* AB("cd\N") \N T..T:
+
+rfork e
+flag e +
+
+fn log{
+	echo $* >[1=2] >/dev/null
+}
+
+fn decase{
+	echo $* | awk '{
+		res = ""
+		n = split($0, chars, "");
+		for(i=1; i <= n; i++) {
+			c = chars[i]
+			if(match(c, /[A-Za-z]/))
+				res = res "[" toupper(c) tolower(c) "]"
+			else
+				res = res c
+		}
+		printf("%s\n", res)
+	}'
+}
+
+fn escape{
+	echo $* | sed 's/[.\?\*\+\|\^\$\[\]\(\)\\]/\\&/g'
+}
+
+reverse=n
+sensitive=n
+word=n
+regex=n
+# If an unknown flag is given, we assume the string is what we want
+# to look for, not a flag. Handy when chording on ↓i.
+while(echo -n $1 | grep -s '^-[rswx]+$'){
+	if(~ $1 *r*) reverse=y
+	if(~ $1 *s*) sensitive=y
+	if(~ $1 *w*) word=y
+	if(~ $1 *x*) regex=y
+	shift
+}
+
+w=/mnt/acme/$winid
+<$w/addr >$w/ctl {
+	if(~ $#* 0){
+		echo 'addr=dot'
+		text=`{cat $w/xdata}
+	}
+	if not text=$"*
+	if(~ $text '') exit ''
+
+	if(~ $regex n) text=`{escape $text}
+	if(~ $sensitive y) rx=$text
+	if not rx=`{decase $"text}
+	rx=$"rx
+	oldrx=$rx
+	if(~ $word y) rx='(^|[^A-Za-z_])' ^ $rx ^ '($|[^A-Za-z_])'
+	deslashed=`{echo $rx | sed 's,/,\\/,g'}
+	cmd='/' ^ $"deslashed ^ '/'
+	if(~ $reverse y) cmd='-' ^ $cmd
+
+	log cmd: $cmd
+	echo 'addr=dot'
+	if(echo -n $cmd >$w/addr >[2]/dev/null){
+		if(~ $word y)
+			# shrink selection back to original
+			echo -n '.-#0/' ^ $oldrx >$w/addr
+		echo 'dot=addr'
+		echo show
+	}
+}
+exit ''
