@@ -254,7 +254,7 @@ elimdepth(char *p){
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-udftxI] [-n mind,maxd] [-e statfmt] [-i regexp] [file ...]\n", argv0);
+	fprint(2, "usage: %s [-udftxI] [-n mind,maxd] [-e statfmt] [-i ignorerx] [file ...]\n  ignorerx may be defaulted using env var 'walk2ignore'", argv0);
 	exits("usage");
 }
 
@@ -273,6 +273,11 @@ main(int argc, char **argv)
 {
 	long i;
 	Dir *d;
+	char *ignoreenv;
+
+	ignoreenv = getenv("walk2ignore");
+	if(ignoreenv != 0)
+		ignore(ignoreenv);
 
 	stfmt = nil;
 	ARGBEGIN{
