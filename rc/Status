@@ -16,7 +16,8 @@ for (i in [0-9]*){
 			}
 			if not{
 				echo dirty >$i/ctl
-				adiff $file $i/body
+				echo '###' $file
+				diff $file $i/body
 			}
 		}
 	}

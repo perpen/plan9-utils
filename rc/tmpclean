@@ -1,5 +1,6 @@
 #!/bin/rc
-# Delete files in $home/tmp that are older than the boot time.
+# Delete files in $home/tmp that were last updated before the last
+# boot.
 
 rfork en
 

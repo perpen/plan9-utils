@@ -1,6 +1,6 @@
 #!/bin/rc
 # Similar to rsc's Slide.
-# Called from Slide-, Slide+ with param (-|+)
+# See peer script Slide+.
 
 rfork e
 

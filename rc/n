@@ -11,7 +11,7 @@
 # - If given a single param containing a space (or | ; & \n \t), then
 #   it will be run with "rc -c".
 # Bugs:
-# - Does not support chording on commands to pass a param
+# - Does not support chording on acme builtins like Look or Edit
 
 rfork e
 
@@ -34,8 +34,8 @@ case *
 		name=`{pwd} ^ /- ^ `{basename $cmd(1)}
 }
 
-id=`{cat /mnt/acme/new/ctl | awk '{print $1}'}
-w=/mnt/acme/$id
+winid=`{cat /mnt/acme/new/ctl | awk '{print $1}'}
+w=/mnt/acme/$winid
 tmp=/tmp/n.$pid
 pidfile=$tmp.pid
 echo 'name ' ^ $name > $w/ctl
@@ -68,33 +68,39 @@ fn removeKill{
 } > $w/body &
 echo $apid >$pidfile
 
-{
-	cat  $w/event >[2]/dev/null |
-	awk '
-		/^M[Xx][0-9]+ [0-9]+ [0-9]+ 0 *$/ {next}
-		/^M[Xx][0-9]+ [0-9]+ [0-9]+ [0-9]+ (Kill|Del)$/ {print $5; next}
-		/^M[XxLl]/ {print $1 " " $2}' |
-	while(){
-		msg=`{read}
-		switch($msg){
-		case Kill
-			if(test -f $pidfile){
-				pg=/proc/ ^ `{cat $pidfile} ^ /notepg
-				if(test -f $pg)
-					echo kill >$pg
-				rm $pidfile
-				echo '#killed' >$w/body
-				echo clean >$w/ctl
-				echo menu >$w/ctl
-				removeKill
-			}
-		case Del
-			if(test -f $pidfile)
-				echo 'command still running' >$w/errors
-			if not
-				echo del >$w/ctl >[2]/dev/null && exit
-		case *
-			echo $msg >$w/event
+fn handleevent{
+	orig=$1; type=$2; q0=$3; q1=$4; eq0=$5; eq1=$6; flag=$7; textlen=$8; text=$9; chordarg=$10; chordorig=$11
+
+	switch($type-$text){
+	case [Xx]-Get [Xx]-Put
+		if(! test -f $cmdpidfile){
+			runcmd &
+			sleep .1
+		}
+	case [Xx]-Kill
+		if(test -f $pidfile){
+			pg=/proc/ ^ `{cat $pidfile} ^ /notepg
+			if(test -f $pg)
+				echo kill >$pg
+			rm $pidfile
+			echo '#killed' >$w/body
+			echo clean >$w/ctl
+			echo menu >$w/ctl
+			removeKill
+		}
+	case [Xx]-Del
+		if(test -f $pidfile)
+			echo 'command still running' >$w/errors
+		if not
+			echo del >$w/ctl >[2]/dev/null && exit
+	case [XxLl]-*
+		if(! ~ $chordarg ''){
+			$text $chordarg
+		}
+		if not{
+			echo $orig ^ $type $q0 $q1 >$w/event
 		}
 	}
-} &
+}
+
+. <{acmeevent} &

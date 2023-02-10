@@ -1,13 +1,21 @@
 #!/bin/rc
 # An rc variant of rsc's https://pkg.go.dev/9fans.net/go/acme/watch
 # Runs asynchronously.
-# Requires the command "enquote" provided in this git repo.
-# Bugs:
+# Requires commands "acmeevent" and "enquote" from this git repo.
+# You can add any number of commands in the +watch window, prefixed
+# with "% ".
+# The +watch window is marked as dirty while the commands are running.
+# If a command fails, the subsequent commands are not run.
+# If given a single param containing a space (or | ; & \n \t), then it
+# will be copied verbatim to the window after a leading "% ":
+# 	e.g. watch "ps | grep glenda" or
+# 	or watch "pwd\n% date" (replace \n with literal newline)'
+# Bugs: FIXME review after acmeevent
 # - If Kill is used, the commands not yet run are forgotten.
 # - If the output for a command does not terminate with a new line, the
 #   subsequent command will be forgotten on Get.
 # - Tabs in command lines are replaced with spaces, due to use of `{}
-# - Does not support chording on commands to pass a param
+# - Does not support chording on acme builtins like Look or Edit
 
 usage='usage: watch [-s1n] [-d dir] cmd [param ...]
 	-1	listen for Put on current dir only, not subdirs
@@ -15,14 +23,7 @@ usage='usage: watch [-s1n] [-d dir] cmd [param ...]
 	-n	do not watch, only run the commands on Get or Put
 	-d	cd to given dir, and listen for Put on files under it
 	Flags taking no param may be combined eg: -sr
-You can add any number of commands in the +watch window, prefixed with
-"% ".
-The +watch window is marked as dirty while the commands are running.
-If a command fails, the subsequent commands are not run.
-If given a single param containing a space (or | ; & \n \t), then it
-will be copied verbatim to the window after a leading "% ":
-	e.g. watch "ps | grep glenda" or
-	or watch "pwd\n% date" (replace \n with literal newline)'
+Details: src watch'
 
 rfork en
 
@@ -86,8 +87,9 @@ ctl 'name ' ^ $name
 ctl dumpdir $dir
 ctl dump $dumpcmd
 ctl cleartag
-tag ' Look Get Kill'
+tag ' ↑i ↓i Get Kill'
 {
+	# FIXME flaky
 	if(echo -n $1 | ssam 'x/[ 	|&;\n]/c/‡/' | grep -s ‡){
 		echo -n '%' $1
 	}
@@ -143,48 +145,45 @@ fn killcmd{
 	ctl clean
 }
 
-{
-	{
-		if(~ $start y) echo Get
+fn handleevent{
+	log EVENT: $*
+	orig=$1; type=$2; q0=$3; q1=$4; eq0=$5; eq1=$6; flag=$7; textlen=$8; text=$9; chordarg=$10; chordorig=$11
 
-		# listen for buttons 2 and 3
-		cat $w/event >[2]/dev/null |
-		awk '
-			/^M[Xx][0-9]+ [0-9]+ [0-9]+ 0 *$/ {next}
-			/^M[Xx][0-9]+ [0-9]+ [0-9]+ [0-9]+ (Put|Get|Kill|Del)$/ {
-				print $5; next
-			}
-			/^M[XxLl]/ {print $1 " " $2}' &
-
-		# listen for put on windows matching the regex, and del on our own
-		cat /mnt/acme/log |
-		awk '
-			/^[0-9]+ put ' ^ `{echo $rx | sed 's,/,\\/,g'} ^ '/ {print "put"}
-			/^' ^ $winid ^ ' del/ {exit}
-		'
-	} |
-	while(){
-		test -d $w || exit ''
-		msg=`{read}
-		log msg: $msg
-		switch($msg){
-		case put Get Put
-			if(! test -f $cmdpidfile){
-				runcmd &
-				# avoid race if getting quick succession of events:
-				sleep .1
-			}
-		case Kill
-			if(test -f $cmdpidfile)
-				killcmd
-		case Del
-			if(test -f $cmdpidfile)
-				echo 'watch: command still running' >$w/errors
-			if not
-				ctl del >[2]/dev/null
-		case *
-			log forwarding $msg
-			echo $msg >$w/event
+	switch($type-$text){
+	case [Xx]-Get [Xx]-Put
+		if(! test -f $cmdpidfile){
+			runcmd &
+			sleep .1
+		}
+	case [Xx]-Kill
+		if(test -f $cmdpidfile)
+			killcmd
+	case [Xx]-Del
+		if(test -f $cmdpidfile)
+			echo 'watch: command still running' >$w/errors
+		if not
+			ctl del >[2]/dev/null
+	case [XxLl]-*
+		if(! ~ $chordarg ''){
+			log CHORD text: $text chordarg: $chordarg
+			$text $chordarg
+		}
+		if not{
+			log forwarding
+			echo $orig ^ $type $q0 $q1 >$w/event
 		}
 	}
-} &
+}
+
+fn handlelog{
+	id=$1; op=$2; name=$3
+	log LOG: id: $id op: $op name: $name
+	if(~ $op put && echo $name | grep -s $rx && ! test -f $cmdpidfile){
+		runcmd &
+		sleep .1
+	}
+}
+
+if(~ $start y)
+	runcmd &
+. <{acmeevent -l} &

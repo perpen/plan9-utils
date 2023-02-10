@@ -29,7 +29,7 @@ while(~ $1 -*){
 	args=($args $1)
 	shift
 }
-args=($args $1)
+args=($args `{enquote $1})
 shift
 if(~ $#* 0)
 	args=($args $dir)
@@ -40,4 +40,5 @@ if not
 		args=($args $arg)
 		shift
 	}
+echo '# g' $args
 eval g $args | sed 's#^' ^ $acmedir ^ '/##'

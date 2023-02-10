@@ -1,35 +1,45 @@
 #!/bin/rc
-# Usage: see :/^fn
-# Runs the command and redirect its output to the window with given
-# name, creating it if needed. On command completion dot is moved to
-# top of output.
-#   -e	only redirect stderr to the window
-#   -t		add given string to the tag
-#
-# Examples:
-#   Out `{pwd} ^ /+Lookman lookman $*
-#   Out -t 'Edit ,d' '+Lookman' lookman $*
-#
-# Bugs:
-# - doesn't recreate the window if deleted and the command has more
-#   output.
-# - if run in parallel, commands outputs are mixed up.
-
+# wip
 rfork e
 
+usage='Usage: out [-e] [-t tag] name cmd [param ...]
+
+Runs the command and redirect its output to the window with given
+name, creating it if needed. On command completion dot is moved to
+top of output by looking for "^#" from the end.
+
+  -e	only redirect stderr to the window
+  -h S	before each output add line "# S"
+  -t	S	add given string to the tag
+
+If option -h is not used, the invoked cmd should print a line starting
+with # before the rest of the output, as the dot is going to be moved to
+this position. Yuck
+
+Examples: See Ctx, G, Lookman
+
+Bugs:
+- does not recreate the window if deleted and the command has more
+  output.
+- if run in parallel, commands outputs are mixed up.'
+
 fn usage{
-	echo 'usage: out [-e] [-t tag] name cmd [param ...]' >[1=2]
+	echo $usage >[1=2]
 	exit usage
 }
 
-tagextra=''
 onlyerr=n
-while(~ $1 -e -t){
+tagextra=''
+header=''
+while(~ $1 -e -t -h){
 	switch($1){
 	case -e
 		onlyerr=y
 	case -t
 		tagextra=$2
+		shift
+	case -h
+		header=$2
 		shift
 	}
 	shift
@@ -62,19 +72,24 @@ shift
 		echo nomenu >$w/ctl
 		echo scratch >$w/ctl
 		{
-			echo -n '#' $* ''
-			if(~ $onlyerr y)
-				echo ' (stderr)'
-			if not
-				echo
+			if(! ~ $header ''){
+				echo -n '# ' ^ $header ^ ' '
+				if(~ $onlyerr y)
+					echo ' (stderr)'
+				if not
+					echo
+			}
 			echo $first
 			cat
 			echo
 		} >$w/body
 		test -d $w && echo clean >$w/ctl
-		
+
 		>$w/addr {
-			echo -n '$-/^# /-#0'
+			echo -n '$-/^# /-#0' || {
+				echo 'Out: command did not print the # marker' >[1=2]
+				exit usage
+			}
 			echo 'dot=addr' >$w/ctl
 		}
 		echo show >$w/ctl

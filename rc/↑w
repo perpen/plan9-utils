@@ -1,2 +1,2 @@
 #!/bin/rc
-exec ↓i -rw $*
+exec ↓ -rw $*

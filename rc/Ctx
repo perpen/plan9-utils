@@ -8,16 +8,20 @@
 
 rfork e
 
+if(! ~ $1 -x)
+	exec Out +Ctx Ctx -x $*
+
 w=/mnt/acme/$winid
 
 # identify address of current line
 <$w/addr {
 	echo 'addr=dot' >$w/ctl
-	preaddr=`{cat | awk '{print "#" $1 ",#" $2}'}
+	addr=`{cat | awk '{print "#" $1 ",#" $2}'}
 	echo -n '0,+-' >$w/addr
 }
 
-echo '# Ctx' - `{cat $w/tag | awk '{print $1}'}^:^$preaddr
+name=`{cat $w/tag | awk '{print $1}'}
+echo '# ' ^ $name ^ : ^ $addr
 cat $w/xdata |
 tail -r |
 awk '

@@ -3,5 +3,5 @@
 # on the desired window.
 
 echo Id: /mnt/acme/$winid \
-	/mnt/acme/$winid/body \
-	`{awk '{print $1}' /mnt/acme/$winid/tag}
+	`{awk '{print $1}' /mnt/acme/$winid/tag} \
+	'# echo delete >'/mnt/acme/$winid/ctl
