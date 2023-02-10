@@ -14,6 +14,8 @@ Usage:
 	}
 	. <{acmeevent -l}
 
+See acme(4)
+
 handleevent params:
 	# $1 - c1 origin of event
 	# $2 - c2 type of action
