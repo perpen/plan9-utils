@@ -1,0 +1,35 @@
+#!/bin/rc
+# Usage: Compl [dir]
+# Loads in acme the path chosen with fm, under dir (defaults to cwd).
+
+rfork e
+
+w=/mnt/acme/$winid
+if(~ $#* 0){
+	cd
+	dir=.
+}
+if not{
+	dir=$1
+	if(~ $dir /) dir=/root
+}
+
+selected=`{walk2 -e xp $dir >[2]/dev/null |
+	awk '/^d/ {print $2 "/"; next} /^/ {print $2}' |
+	sed 's#^(\./|/root)##' |
+	Comp -p
+}
+
+if(! ~$"selected ''){
+	if(~ $selected */){ # open directory window
+		id=`{cat /mnt/acme/new/ctl | awk '{print $1}'}
+		w=/mnt/acme/$id
+		echo 'name '$selected >$w/ctl
+		echo get >$w/ctl
+	}
+	if not{
+		plumb $selected
+	}
+}
+
+exit ''

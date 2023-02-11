@@ -1,0 +1,39 @@
+#!/bin/rc
+# wip
+# Acme completion helper, requires https://github.com/telephil9/fm
+# See Compf/Compl for example usage.
+
+#echo 'Comp: try not to' >[1=2]; exit 'no'
+rfork e
+
+if(! test -f /mnt/acme/index)
+	exit 'acme-only'
+if(~ $1 -p){
+	printonly=y
+	shift
+}
+
+tmp=/tmp/Comp.$pid
+choices=$tmp.choices
+selected=$tmp.selected
+
+cat >$choices
+rm -f $selected
+
+fn fmwindow{
+	window -m rc -c 'cat '$choices' | fm -p >'$tmp'; mv '$tmp' '$selected
+	while(! test -f $selected)
+		sleep .2
+}
+popup fmwindow
+
+w=/mnt/acme/$winid
+if(~ $printonly y){
+	cat $selected
+	echo
+}
+if not{
+	if(test -s $selected)
+		cat $selected >$w/wrsel
+}
+rm $tmp.*

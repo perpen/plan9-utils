@@ -1,0 +1,48 @@
+#!/bin/rc
+# Demo of acme's event and log files, using the acmeevent command.
+
+pwd=`{pwd}
+winid=`{cat /mnt/acme/new/ctl | awk '{print $1}'}
+w=/mnt/acme/$winid
+echo -n ' Sel Addr Upper Blah ' >$w/tag
+echo 'act on me...' >$w/body
+fn log{
+	echo $* >[1=2]
+}
+
+fn handleevent{
+	log EVENT: $*
+	orig=$1; type=$2; q0=$3; q1=$4; eq0=$5; eq1=$6; flag=$7; textlen=$8; text=$9; chordarg=$10; chordorig=$11
+
+	switch($type-$text){
+	case [xX]-Del
+		echo delete >$w/ctl && exit ''
+	case [xX]-Sel
+		log 'rdsel:' `{cat $w/rdsel}
+	case [xX]-Addr
+		< $w/addr {
+			echo 'addr=dot' >$w/ctl
+			log 'addr:' `{cat}
+		}
+	case [xX]-Upper
+		cat $w/rdsel | tr a-z A-Z > $w/wrsel
+	case [xXlL]-*
+		if(! ~ $chordarg ''){
+			log command: $text arg: $chordarg
+		}
+		if not{
+			echo $orig ^ $type $q0 $q1 >$w/event
+		}
+	}
+}
+
+fn handlelog{
+	id=$1; op=$2; name=$3
+#	if(! ~ $op focus)
+		log LOG: id: $id op: $op name: $name
+}
+
+log winid: $winid
+log cwd: $pwd
+. <{acmeevent -l}
+exit ''

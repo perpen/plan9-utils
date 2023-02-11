@@ -1,0 +1,19 @@
+#!/bin/rc
+# A variant of fmt which works on comments.
+# Tries to guess the type of comment to use.
+# Usage: select a paragraph of commented text in acme then run |fmtc
+
+rfork e
+
+name=`{cat /mnt/acme/$winid/tag | awk '{print $1}'}
+switch($name){
+case *.go *.[ch]
+	comment='//'
+case *
+	comment='#'
+}
+
+ssam 'x%([ 	\n]*' ^ $comment ^ '[ 	\n]*|[ 	\n]+)%c% %' |
+fmt |
+ssam 'x/ +/c/ /' | # fmt adds 2 spaces after a period
+ssam 'x%^%i%' ^ $comment ^ '%'

@@ -1,0 +1,18 @@
+#!/bin/rc
+# Usage: Compf [dir]
+# Acme: replaces dot with the path chosen with fm, under dir (defaults
+# to cwd).
+
+rfork e
+
+dir=$1
+if(~ $#* 0)
+	dir=`{pwd}
+if(~ $dir /) dir=/root
+
+walk2 -e xp $dir >[2]/dev/null |
+awk '/^d/ {print $2 "/"; next} /^/ {print $2}' |
+sed 's#^(\./|/root)##' |
+Comp
+
+exit ''

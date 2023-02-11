@@ -1,7 +1,7 @@
 </$objtype/mkfile
 
-TARG=acmeevent
-OFILES=acmeevent.$O
+TARG=acmeevent2
+OFILES=acmeevent2.$O
 BIN=$home/bin/$objtype
 CFLAGS=-FTVw
 UPDATE=\

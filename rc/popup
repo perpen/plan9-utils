@@ -1,0 +1,15 @@
+#!/bin/rc
+# Usage: popup cmd [...]
+# Runs the command, and when it completes selects the original rio window.
+
+rfork e
+
+cur=''
+for (win in /dev/wsys/*){
+	if(dd -if $win/wctl -bs 128 -count 1 -quiet 1 | grep -s ' current ')
+		cur=$win
+}
+if(~ $cur '')
+	exit 'nowindow'
+$*
+echo current >$cur/wctl
