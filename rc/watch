@@ -1,7 +1,7 @@
 #!/bin/rc
 # An rc variant of rsc's https://pkg.go.dev/9fans.net/go/acme/watch
 # Runs asynchronously.
-# Requires commands "acmeevent" and "enquote" from this git repo.
+# Requires commands "acmeevent2" and "enquote" from this git repo.
 # You can add any number of commands in the +watch window, prefixed
 # with "% ".
 # The +watch window is marked as dirty while the commands are running.
@@ -10,12 +10,14 @@
 # will be copied verbatim to the window after a leading "% ":
 # 	e.g. watch "ps | grep glenda" or
 # 	or watch "pwd\n% date" (replace \n with literal newline)'
-# Bugs: FIXME review after acmeevent
+# Bugs: FIXME review after acmeevent2
 # - If Kill is used, the commands not yet run are forgotten.
 # - If the output for a command does not terminate with a new line, the
 #   subsequent command will be forgotten on Get.
 # - Tabs in command lines are replaced with spaces, due to use of `{}
 # - Does not support chording on acme builtins like Look or Edit
+
+rfork en
 
 usage='usage: watch [-s1n] [-d dir] cmd [param ...]
 	-1	listen for Put on current dir only, not subdirs
@@ -24,8 +26,6 @@ usage='usage: watch [-s1n] [-d dir] cmd [param ...]
 	-d	cd to given dir, and listen for Put on files under it
 	Flags taking no param may be combined eg: -sr
 Details: src watch'
-
-rfork en
 
 fn log{
 	#echo $* >[1=2]
@@ -186,4 +186,4 @@ fn handlelog{
 
 if(~ $start y)
 	runcmd &
-. <{acmeevent -l} &
+. <{acmeevent2 -l} &

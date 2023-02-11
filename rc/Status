@@ -13,6 +13,7 @@ for (i in [0-9]*){
 			# there's a file, compare
 			if(cmp -s $i/body $file){
 				echo clean >$i/ctl
+				echo put >$i/ctl # to get rid of the irrelevant Put
 			}
 			if not{
 				echo dirty >$i/ctl
@@ -20,6 +21,8 @@ for (i in [0-9]*){
 				diff $file $i/body
 			}
 		}
+		if not if(~ $file +*)
+			echo clean >$i/ctl
 	}
 }
 status=''

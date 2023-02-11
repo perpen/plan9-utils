@@ -10,7 +10,7 @@ if(~ $#acmedir 0){
 }
 
 if(! ~ $1 -x)
-	exec Out -t 'd G' +G G -x $*
+	exec Out -t d +G G -x $*
 
 shift
 name=`{cat /mnt/acme/$winid/tag | awk '{print $1}'}

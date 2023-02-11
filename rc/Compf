@@ -2,12 +2,14 @@
 # Usage: Compf [dir]
 # Acme: replaces dot with the path chosen with fm, under dir (defaults
 # to cwd).
+# Weakly attempts to avoid scanning /, does /root instead.
 
 rfork e
 
-dir=$1
 if(~ $#* 0)
-	dir=`{pwd}
+	dir=.
+if not
+	dir=$1
 if(~ $dir /) dir=/root
 
 walk2 -e xp $dir >[2]/dev/null |

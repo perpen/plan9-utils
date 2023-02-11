@@ -2,6 +2,8 @@
 # Prints info about enclosing blocks (C, go, rc)
 # Assumes indentations are either all tabs or all spaces.
 # Bugs:
+# - The generated address is offset-based, flaky. Generate a
+# search-based one?
 # - Would it be useful to provide the address of the block lines? But
 #   I can always select the block line in the Ctx output and pass it to
 #   Look with 2-1.
@@ -9,11 +11,10 @@
 rfork e
 
 if(! ~ $1 -x)
-	exec Out +Ctx Ctx -x $*
+	exec Out -t 'd Ctx' +Ctx Ctx -x $*
 
 w=/mnt/acme/$winid
 
-# identify address of current line
 <$w/addr {
 	echo 'addr=dot' >$w/ctl
 	addr=`{cat | awk '{print "#" $1 ",#" $2}'}
@@ -21,7 +22,8 @@ w=/mnt/acme/$winid
 }
 
 name=`{cat $w/tag | awk '{print $1}'}
-echo '# ' ^ $name ^ : ^ $addr
+echo '# ' ^  $name ^ : ^ $addr
+
 cat $w/xdata |
 tail -r |
 awk '

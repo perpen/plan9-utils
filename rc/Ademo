@@ -1,5 +1,5 @@
 #!/bin/rc
-# Demo of acme's event and log files, using the acmeevent command.
+# Demo of acme's event and log files, using the acmeevent2 command.
 
 pwd=`{pwd}
 winid=`{cat /mnt/acme/new/ctl | awk '{print $1}'}
@@ -31,6 +31,7 @@ fn handleevent{
 			log command: $text arg: $chordarg
 		}
 		if not{
+			log forwarding
 			echo $orig ^ $type $q0 $q1 >$w/event
 		}
 	}
@@ -44,5 +45,5 @@ fn handlelog{
 
 log winid: $winid
 log cwd: $pwd
-. <{acmeevent -l}
+. <{acmeevent2 -l}
 exit ''

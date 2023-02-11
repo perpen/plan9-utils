@@ -1,18 +1,33 @@
 #!/bin/rc
 # Usage: Compl [dir]
 # Loads in acme the path chosen with fm, under dir (defaults to cwd).
+# Weakly attempts to avoid scanning /, does /root instead.
 
 rfork e
 
-w=/mnt/acme/$winid
-if(~ $#* 0){
-	cd
-	dir=.
+fn abspath{
+	switch($1){
+	case .
+		pwd
+	case /*
+		echo $1
+	case *
+		@{
+			cd `{basename -d `{pwd} ^ / ^ $1}
+			echo `{pwd} ^ / ^ `{basename $1}
+		}
+	}
 }
-if not{
+fn src2s{
+	abspath $1 | sed 's#/usr/henri/src/#/s/#'
+}
+
+if(~ $#* 0)
+	dir = .
+if not
 	dir=$1
-	if(~ $dir /) dir=/root
-}
+if(~ `{abspath $dir} /)
+	dir=/root
 
 selected=`{walk2 -e xp $dir >[2]/dev/null |
 	awk '/^d/ {print $2 "/"; next} /^/ {print $2}' |
@@ -20,16 +35,16 @@ selected=`{walk2 -e xp $dir >[2]/dev/null |
 	Comp -p
 }
 
-if(! ~$"selected ''){
+if(! ~ $"selected ''){
+	selected=`{src2s $selected} # makes path absolute, issues?
 	if(~ $selected */){ # open directory window
 		id=`{cat /mnt/acme/new/ctl | awk '{print $1}'}
 		w=/mnt/acme/$id
 		echo 'name '$selected >$w/ctl
 		echo get >$w/ctl
 	}
-	if not{
+	if not
 		plumb $selected
-	}
 }
 
 exit ''
