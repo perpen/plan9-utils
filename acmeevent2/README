@@ -1,4 +1,5 @@
-From plan9port, with changes:
+From plan9port's acmeevent.c, with changes:
+	- reads from /mnt/acme/$winid/event
 	- new option "-l" to watch the acme log as well
 	- the commands emitted are handleevent and handlelog
 	- ignores F events
