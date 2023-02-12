@@ -4,6 +4,15 @@
 
 rfork e
 
+fn ellipse{
+	awk -v 'max='$1 '{
+		if(length > max)
+			print(substr($0, 0, max) "...")
+		else
+			print
+	}'
+}
+
 if(~ $#acmedir 0){
 	echo 'G: acmedir not defined' >[1=2]
 	exit usage
@@ -40,5 +49,5 @@ if not
 		args=($args $arg)
 		shift
 	}
-echo '# g' $args
+echo '# g' $args | ellipse 70
 eval g $args | sed 's#^' ^ $acmedir ^ '/##'
