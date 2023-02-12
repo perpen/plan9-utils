@@ -5,4 +5,4 @@ rfork e
 
 if(! test -f $1)
 	echo '#!/bin/rc' >$1
-chmod +x $1
+chmod a+x $1

@@ -7,7 +7,7 @@
 # - While commands are running:
 #	- A Kill command is placed in the tag
 #	- The window is marked as dirty
-#      - Del does not delete
+#      - Del refuses to delete
 # - If given a single param containing a space (or | ; & \n \t), then
 #   it will be run with "rc -c".
 # Bugs:

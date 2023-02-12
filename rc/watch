@@ -10,12 +10,14 @@
 # will be copied verbatim to the window after a leading "% ":
 # 	e.g. watch "ps | grep glenda" or
 # 	or watch "pwd\n% date" (replace \n with literal newline)'
-# Bugs: FIXME review after acmeevent2
+# Bugs:
 # - If Kill is used, the commands not yet run are forgotten.
 # - If the output for a command does not terminate with a new line, the
 #   subsequent command will be forgotten on Get.
-# - Tabs in command lines are replaced with spaces, due to use of `{}
-# - Does not support chording on acme builtins like Look or Edit
+# - Tabs in command lines are replaced with spaces, due to use of `{}.
+#   Fix either by swapping \t with another char, or use <{}.
+# - Chording on commands works, except with acme builtins like Look or
+#   Edit.
 
 rfork en
 

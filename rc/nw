@@ -1,5 +1,6 @@
 #!/bin/rc
-# Similar to running "new CMD", but asynchronous, and uses watch so the
-# command is easier to run, kill, and notice when complete.
+# Vaguely similar to running "new CMD", but asynchronous, and uses
+# watch so the command is easier to run, kill, and notice when
+# complete.
 
 watch -sn $* &

@@ -1,5 +1,7 @@
 #!/bin/rc
 # Similar to rsc's Slide.
+# Variable $safe below can be set to "y" to check if the window is
+# clean before changing slide.
 # See peer script Slide+.
 
 rfork e

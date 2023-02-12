@@ -1,7 +1,7 @@
 #!/bin/rc
-# Acme basic query-replace. Undo to skip last replacement.
-# It's just as easy to type 'Edit /old/c/new/' but then the change may
-# happen off-screen.
+# Acme basic query-replace. Undo to skip last replacement. It's just
+# as easy to type 'Edit /old/c/new/' but then the change may happen
+# off-screen. This command ensures the last change is made visible.
 
 rfork e
 

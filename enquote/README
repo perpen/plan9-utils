@@ -1,1 +1,4 @@
 Prints args, quoted using quote(2) and needsrcquote.
+
+% enquote a 'b c'
+a 'b c'
