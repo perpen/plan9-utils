@@ -21,7 +21,8 @@ Examples: See Ctx, G, Lookman
 Bugs:
 - does not recreate the window if deleted and the command has more
   output.
-- if run in parallel, commands outputs are mixed up.'
+- if run in parallel, commands outputs are mixed up. Fix: should error if
+  happens.'
 
 fn usage{
 	echo $usage >[1=2]

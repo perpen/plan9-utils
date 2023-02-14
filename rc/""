@@ -17,6 +17,6 @@ if(~ $#_x 0) {
        exit notfound
 }
 
-echo % $_x >[1=2]
+echo $prompt(1) $_x >[1=2]
 _x=`{ echo -n 'eval '''; echo $_x | sed 's/^'$PROMPT'//; s/''/''''/g; s/$/''/'}
 rc -c $"_x

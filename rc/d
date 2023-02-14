@@ -1,6 +1,5 @@
 #!/bin/rc
-# Acme/rio: snarf and delete window text.
-# Works in acme's win window too.
+# Acme/win/rio: snarf and delete window text.
 
 rfork e
 

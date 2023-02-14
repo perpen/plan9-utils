@@ -11,7 +11,7 @@ for (i in [0-9]*){
 		file=$tag(1)
 		if(test -f $file){
 			# there's a file, compare
-			if(cmp -s $i/body $file){
+			if(cmp -s $file $i/body){
 				echo clean >$i/ctl
 				echo put >$i/ctl # to get rid of the irrelevant Put
 			}
