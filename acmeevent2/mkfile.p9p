@@ -1,0 +1,12 @@
+<$PLAN9/src/mkhdr
+
+TARG=acmeevent2
+OFILES=acmeevent2.$O
+#BIN=$home/bin/$objtype
+CFLAGS=-FTVw
+UPDATE=\
+	mkfile\
+	${OFILES:%.$O=%.c}\
+
+<$PLAN9/src/mkone
+LDFLAGS+=-lthread

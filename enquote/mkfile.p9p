@@ -1,0 +1,12 @@
+<$PLAN9/src/mkhdr
+
+TARG=enquote
+OFILES=enquote.$O
+
+#BIN=$home/bin/$objtype
+
+UPDATE=\
+	mkfile\
+	${OFILES:%.$O=%.c}\
+
+<$PLAN9/src/mkone

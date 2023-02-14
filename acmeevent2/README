@@ -1,3 +1,5 @@
+This is for running on plan9, not plan9port.
+
 From plan9port's acmeevent.c, with changes:
 	- reads from /mnt/acme/$winid/event
 	- new option "-l" to watch the acme log as well
@@ -38,4 +40,3 @@ origins:
 	case MI	# mouse: text inserted in body
 	case Md	# mouse: text deleted from tag
 	case MD	# mouse: text deleted from body
-
